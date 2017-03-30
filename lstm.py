@@ -1,7 +1,9 @@
 #!/usr/bin/python
+from __future__ import print_function
 import tensorflow as tf
 import tensorflow.contrib.rnn as rnn
 import numpy as np
+import time
 from os import listdir
 from os.path import isfile, join
 
@@ -14,8 +16,8 @@ def read_data(signal_files):
     :return: a tensor represents sensor data
     """
     signal_tensor = np.dstack([np.loadtxt(signal_file) for signal_file in signal_files])
-    if __debug__:
-        print 'loaded tensor shape: ', signal_tensor.shape
+    if not __debug__:
+        print('loaded tensor shape: ', signal_tensor.shape)
     return signal_tensor
 
 
@@ -28,8 +30,8 @@ def read_label(label_file):
     """
     y_ = np.loadtxt(label_file, dtype=np.int32)
 
-    if __debug__:
-        print 'loaded label shape: ', y_.shape
+    if not __debug__:
+        print('loaded label shape: ', y_.shape)
 
     # use one-hot encoding
     y_one_hot = np.zeros((y_.size, y_.max()))
@@ -140,9 +142,9 @@ if __name__ == "__main__":
     input_data_train_files = list_files(input_data_path_train)
     input_data_test_files = list_files(input_data_path_test)
 
-    if __debug__:
-        print input_data_train_files
-        print input_data_test_files
+    if not __debug__:
+        print(input_data_train_files)
+        print(input_data_test_files)
 
     input_train = read_data(input_data_train_files)
     input_test = read_data(input_data_test_files)
@@ -167,7 +169,7 @@ if __name__ == "__main__":
 
     # Loss,optimizer,evaluation
     l2 = config.lambda_loss_amount * sum(tf.nn.l2_loss(tf_var) for tf_var in tf.trainable_variables())
-    # Softmax loss and L2
+    # softmax loss and L2
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=predicted_label, labels=Y)) + l2
     optimizer = tf.train.AdamOptimizer(learning_rate=config.learning_rate).minimize(cost)
 
@@ -184,16 +186,22 @@ if __name__ == "__main__":
     best_accuracy = 0.0
     # Start training for each batch and loop epochs
     for i in range(config.training_epochs):
+        begin_time = time.time()
         for start, end in zip(range(0, config.train_count, config.batch_size),
                               range(config.batch_size, config.train_count + 1, config.batch_size)):
 
             sess.run(optimizer, feed_dict={X: input_train[start:end], Y: y_train[start:end]})
+        train_time = time.time()
         # Test completely at every epoch: calculate accuracy
         predict_out, accuracy_out, loss_out = sess.run([predicted_label, accuracy, cost],
                                                        feed_dict={X: input_test, Y: y_test})
+        end_time = time.time()
         print("training iter: {},".format(i)
               + " test accuracy : {},".format(accuracy_out)
-              + " loss : {}".format(loss_out))
+              + " loss : {}".format(loss_out)
+              + " train time : {} seconds".format(train_time - begin_time)
+              + " test time : {} seconds".format(end_time - train_time)
+              )
         best_accuracy = max(best_accuracy, accuracy_out)
 
     print("best epoch's test accuracy: {}".format(best_accuracy))
