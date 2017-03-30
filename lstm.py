@@ -1,53 +1,38 @@
-
-# Thanks to Zhao Yu for converting the .ipynb notebook to
-# this simplified Python script that I edited a little.
-
-# Note that the dataset must be already downloaded for this script to work, do:
-#     $ cd data/
-#     $ python download_dataset.py
-
+#!/usr/bin/python
 import tensorflow as tf
-
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-from sklearn import metrics
-
-import os
 
 
-# Load "X" (the neural network's training and testing inputs)
-
-def load_X(X_signals_paths):
-    X_signals = []
-
-    for signal_type_path in X_signals_paths:
-        file = open(signal_type_path, 'rb')
-        # Read dataset from disk, dealing with text files' syntax
-        X_signals.append(
-            [np.array(serie, dtype=np.float32) for serie in [
-                row.replace('  ', ' ').strip().split(' ') for row in file
-            ]]
-        )
-        file.close()
-
-    return np.transpose(np.array(X_signals), (1, 2, 0))
+def read_data(signal_files):
+    """
+    load sensor data into a tensor 
+    
+    :param signal_files: a list of sensor data files
+    :return: a tensor represents sensor data
+    """
+    signal_tensor = np.dstack([np.loadtxt(signal_file) for signal_file in signal_files])
+    if __debug__:
+        print 'loaded tensor shape: ', signal_tensor.shape
+    return signal_tensor
 
 
-# Load "y" (the neural network's training and testing outputs)
+def read_label(label_file):
+    """
+    load label data into a one-hot tensor
+    
+    :param label_file: the file that contains the label
+    :return: a one-hot represented tensor
+    """
+    y_ = np.loadtxt(label_file, dtype=np.int32)
 
-def load_y(y_path):
-    file = open(y_path, 'rb')
-    # Read dataset from disk, dealing with text file's syntax
-    y_ = np.array(
-        [elem for elem in [
-            row.replace('  ', ' ').strip().split(' ') for row in file
-        ]],
-        dtype=np.int32
-    )
-    file.close()
-    # Substract 1 to each output class for friendly 0-based indexing
-    return y_ - 1
+    if __debug__:
+        print 'loaded label shape: ', y_.shape
+
+    # use one-hot encoding
+    y_one_hot = np.zeros((y_.size, y_.max()))
+    y_one_hot[np.arange(y_.size), y_-1] = 1
+
+    return y_one_hot
 
 
 class Config(object):
@@ -128,25 +113,11 @@ def LSTM_Network(feature_mat, config):
     return tf.matmul(lstm_last_output, config.W['output']) + config.biases['output']
 
 
-def one_hot(label):
-    """convert label from dense to one hot
-      argument:
-        label: ndarray dense label ,shape: [sample_num,1]
-      return:
-        one_hot_label: ndarray  one hot, shape: [sample_num,n_class]
-    """
-    label_num = len(label)
-    new_label = label.reshape(label_num)  # shape : [sample_num]
-    # because max is 5, and we will create 6 columns
-    n_values = np.max(new_label) + 1
-    return np.eye(n_values)[np.array(new_label, dtype=np.int32)]
-
-
 if __name__ == "__main__":
 
-    #-----------------------------
+    # -----------------------------
     # step1: load and prepare data
-    #-----------------------------
+    # -----------------------------
     # Those are separate normalised input features for the neural network
     INPUT_SIGNAL_TYPES = [
         "body_acc_x_",
@@ -182,17 +153,17 @@ if __name__ == "__main__":
     X_test_signals_paths = [
         DATASET_PATH + TEST + "Inertial Signals/" + signal + "test.txt" for signal in INPUT_SIGNAL_TYPES
     ]
-    X_train = load_X(X_train_signals_paths)
-    X_test = load_X(X_test_signals_paths)
+    X_train = read_data(X_train_signals_paths)
+    X_test = read_data(X_test_signals_paths)
 
     y_train_path = DATASET_PATH + TRAIN + "y_train.txt"
     y_test_path = DATASET_PATH + TEST + "y_test.txt"
-    y_train = one_hot(load_y(y_train_path))
-    y_test = one_hot(load_y(y_test_path))
+    y_train = read_label(y_train_path)
+    y_test = read_label(y_test_path)
 
-    #-----------------------------------
+    # -----------------------------------
     # step2: define parameters for model
-    #-----------------------------------
+    # -----------------------------------
     config = Config(X_train, X_test)
     print("Some useful info to get an insight on dataset's shape and normalisation:")
     print("features shape, labels shape, each features mean, each features standard deviation")
@@ -200,9 +171,9 @@ if __name__ == "__main__":
           np.mean(X_test), np.std(X_test))
     print("the dataset is therefore properly normalised, as expected.")
 
-    #------------------------------------------------------
+    # ------------------------------------------------------
     # step3: Let's get serious and build the neural network
-    #------------------------------------------------------
+    # ------------------------------------------------------
     X = tf.placeholder(tf.float32, [None, config.n_steps, config.n_inputs])
     Y = tf.placeholder(tf.float32, [None, config.n_classes])
 
@@ -210,7 +181,7 @@ if __name__ == "__main__":
 
     # Loss,optimizer,evaluation
     l2 = config.lambda_loss_amount * \
-        sum(tf.nn.l2_loss(tf_var) for tf_var in tf.trainable_variables())
+         sum(tf.nn.l2_loss(tf_var) for tf_var in tf.trainable_variables())
     # Softmax loss and L2
     cost = tf.reduce_mean(
         tf.nn.softmax_cross_entropy_with_logits(pred_Y, Y)) + l2
@@ -220,11 +191,11 @@ if __name__ == "__main__":
     correct_pred = tf.equal(tf.argmax(pred_Y, 1), tf.argmax(Y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_pred, dtype=tf.float32))
 
-    #--------------------------------------------
+    # --------------------------------------------
     # step4: Hooray, now train the neural network
-    #--------------------------------------------
+    # --------------------------------------------
     # Note that log_device_placement can be turned ON but will cause console spam.
-    sess=tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
+    sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
     tf.initialize_all_variables().run()
 
     best_accuracy = 0.0
@@ -237,9 +208,9 @@ if __name__ == "__main__":
 
         # Test completely at every epoch: calculate accuracy
         pred_out, accuracy_out, loss_out = sess.run([pred_Y, accuracy, cost], feed_dict={
-                                                X: X_test, Y: y_test})
-        print("traing iter: {},".format(i)+\
-              " test accuracy : {},".format(accuracy_out)+\
+            X: X_test, Y: y_test})
+        print("traing iter: {},".format(i) + \
+              " test accuracy : {},".format(accuracy_out) + \
               " loss : {}".format(loss_out))
         best_accuracy = max(best_accuracy, accuracy_out)
 
@@ -248,12 +219,12 @@ if __name__ == "__main__":
     print("best epoch's test accuracy: {}".format(best_accuracy))
     print("")
 
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # step5: Training is good, but having visual insight is even better
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # The code is in the .ipynb
 
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # step6: And finally, the multi-class confusion matrix and metrics!
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     # The code is in the .ipynb
