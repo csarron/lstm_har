@@ -5,7 +5,7 @@ import tensorflow.contrib.rnn as rnn
 import numpy as np
 import time
 from os import listdir
-from os.path import isfile, join
+from os.path import isfile, join, exists
 
 
 def read_data(signal_files):
@@ -64,7 +64,7 @@ class Config(object):
         # Training
         self.learning_rate = 0.0025
         self.lambda_loss_amount = 0.0015
-        self.training_epochs = 300
+        self.training_epochs = 150
         self.batch_size = 1500
 
         # LSTM structure
@@ -164,6 +164,7 @@ if __name__ == "__main__":
     # ------------------------------------------------------
     X = tf.placeholder(tf.float32, [None, config.n_steps, config.n_inputs])
     Y = tf.placeholder(tf.float32, [None, config.n_classes])
+    saver = tf.train.Saver()
 
     predicted_label = lstm_net(X, config)
 
@@ -182,8 +183,11 @@ if __name__ == "__main__":
     # Note that log_device_placement can be turned ON but will cause console spam.
     sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
     tf.global_variables_initializer().run()
-
+    model_file_name = "data/best_test_acc_tf1.1.model"
+    if exists(model_file_name):
+        saver.restore(sess, model_file_name)
     best_accuracy = 0.0
+    best_iter = 0
     # Start training for each batch and loop epochs
     for i in range(config.training_epochs):
         begin_time = time.time()
@@ -196,12 +200,14 @@ if __name__ == "__main__":
         predict_out, accuracy_out, loss_out = sess.run([predicted_label, accuracy, cost],
                                                        feed_dict={X: input_test, Y: y_test})
         end_time = time.time()
-        print("training iter: {},".format(i)
-              + " test accuracy : {},".format(accuracy_out)
-              + " loss : {}".format(loss_out)
-              + " train time : {} seconds".format(train_time - begin_time)
-              + " test time : {} seconds".format(end_time - train_time)
-              )
-        best_accuracy = max(best_accuracy, accuracy_out)
-
-    print("best epoch's test accuracy: {}".format(best_accuracy))
+        if accuracy_out > best_accuracy:
+            best_accuracy = accuracy_out
+            best_iter = i
+            save_path = saver.save(sess, model_file_name)
+        print("iter:{},".format(i)
+              + " test_acc:{},".format(accuracy_out)
+              + " loss:{}".format(loss_out)
+              + " t_train:{}s,".format(train_time - begin_time)
+              + " t_test:{}s,".format(end_time - train_time)
+              + " best_test_acc:{}".format(best_accuracy) + " (iter{})".format(best_iter))
+    print("best epoch's test accuracy: {}".format(best_accuracy) + " at iter: {}".format(best_iter))
