@@ -5,13 +5,14 @@ import tensorflow.contrib.rnn as rnn
 import numpy as np
 import time
 from os import listdir
-from os.path import isfile, join, exists
+from os.path import isfile, join
+import glob
 
 
 def read_data(signal_files):
     """
     load sensor data into a tensor 
-    
+
     :param signal_files: a list of sensor data files
     :return: a tensor represents sensor data
     """
@@ -24,7 +25,7 @@ def read_data(signal_files):
 def read_label(label_file):
     """
     load label data into a one-hot tensor
-    
+
     :param label_file: the file that contains the label
     :return: a one-hot represented tensor
     """
@@ -55,11 +56,10 @@ class Config(object):
     the input should be feature matrix of training and testing
     """
 
-    def __init__(self, input_data_train, input_data_test):
+    def __init__(self, input_data_test):
         # Input data
-        self.train_count = len(input_data_train)  # 7352 training series
         self.test_data_count = len(input_data_test)  # 2947 testing series
-        self.n_steps = len(input_data_train[0])  # 128 time_steps per series
+        self.n_steps = len(input_data_test[0])  # 128 time_steps per series
 
         # Training
         self.learning_rate = 0.0025
@@ -68,7 +68,7 @@ class Config(object):
         self.batch_size = 1500
 
         # LSTM structure
-        self.n_inputs = len(input_data_train[0][0])  # Features count is of 9: three 3D sensors features over time
+        self.n_inputs = len(input_data_test[0][0])  # Features count is of 9: three 3D sensors features over time
         self.n_hidden = 32  # nb of neurons inside the neural network
         self.n_classes = 6  # Final output classes
         self.W = {
@@ -85,7 +85,7 @@ def lstm_net(feature_matrix, conf):
     """
     model a LSTM Network, it stacks 2 LSTM layers, each layer has n_hidden=32 cells
     and 1 output layer, it is a full connected layer
-       
+
     :param feature_matrix: feature matrix, shape=[batch_size, time_steps, n_inputs]
     :param conf: config of network
     :return: output matrix, shape=[batch_size, n_classes]
@@ -125,39 +125,30 @@ def lstm_net(feature_matrix, conf):
 
 
 if __name__ == "__main__":
-
+    init_time = time.time()
     # -----------------------------
     # step1: load and prepare data
     # -----------------------------
     DATA_PATH = "data/UCI HAR Dataset/"
     SIGNALS = "Inertial Signals/"
-    TRAIN = "train/"
     TEST = "test/"
-    LABEL_TRAIN_FILE = "y_train.txt"
     LABEL_TEST_FILE = "y_test.txt"
 
-    input_data_path_train = DATA_PATH + TRAIN + SIGNALS
     input_data_path_test = DATA_PATH + TEST + SIGNALS
-
-    input_data_train_files = list_files(input_data_path_train)
     input_data_test_files = list_files(input_data_path_test)
 
     if not __debug__:
-        print(input_data_train_files)
         print(input_data_test_files)
 
-    input_train = read_data(input_data_train_files)
     input_test = read_data(input_data_test_files)
 
-    label_train_file = DATA_PATH + TRAIN + LABEL_TRAIN_FILE
     label_test_file = DATA_PATH + TEST + LABEL_TEST_FILE
-    y_train = read_label(label_train_file)
     y_test = read_label(label_test_file)
 
     # -----------------------------------
     # step2: define parameters for model
     # -----------------------------------
-    config = Config(input_train, input_test)
+    config = Config(input_test)
 
     # ------------------------------------------------------
     # step3: Let's get serious and build the neural network
@@ -175,38 +166,34 @@ if __name__ == "__main__":
 
     correct_predicted = tf.equal(tf.argmax(predicted_label, 1), tf.argmax(Y, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_predicted, dtype=tf.float32))
-
+    session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
+    tf.global_variables_initializer().run()
     # --------------------------------------------
-    # step4: Train the neural network
+    # step4: Test the neural network
     # --------------------------------------------
     # Note that log_device_placement can be turned ON but will cause console spam.
-    sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
-    tf.global_variables_initializer().run()
-    model_file_name = "data/lstm_har.model"
-    saver = tf.train.Saver(max_to_keep=2)
-    best_accuracy = 0.0
-    best_iter = 0
-    # Start training for each batch and loop epochs
-    for i in range(config.training_epochs):
-        begin_time = time.time()
-        for start, end in zip(range(0, config.train_count, config.batch_size),
-                              range(config.batch_size, config.train_count + 1, config.batch_size)):
+    model_file_name = "data/best_test_acc_tf1.1.model"
 
-            sess.run(optimizer, feed_dict={X: input_train[start:end], Y: y_train[start:end]})
-        train_time = time.time()
-        # Test completely at every epoch: calculate accuracy
-        predict_out, accuracy_out, loss_out = sess.run([predicted_label, accuracy, cost],
-                                                       feed_dict={X: input_test, Y: y_test})
+    init_end_time = time.time()
+    print("init finished, compile graph and init variables takes {}s".format(init_end_time - init_time))
+
+    if glob.glob(model_file_name + "*"):
+        print("begin restoring")
+        begin_time = time.time()
+        saver = tf.train.import_meta_graph(model_file_name + ".meta")
+        saver.restore(session, model_file_name)
         end_time = time.time()
-        if accuracy_out > best_accuracy:
-            best_accuracy = accuracy_out
-            best_iter = i
-            save_path = saver.save(sess, model_file_name, global_step=i)
-            print("model saved at: {}".format(save_path))
-        print("iter:{},".format(i)
-              + " test_acc:{},".format(accuracy_out)
-              + " loss:{}".format(loss_out)
-              + " t_train:{}s,".format(train_time - begin_time)
-              + " t_test:{}s,".format(end_time - train_time)
-              + " best_test_acc:{}".format(best_accuracy) + " (iter{})".format(best_iter))
-    print("best epoch's test accuracy: {}".format(best_accuracy) + " at iter: {}".format(best_iter))
+        print("restored model, takes {} s".format(end_time - begin_time))
+        begin_time = time.time()
+        predict_out = session.run(predicted_label, feed_dict={X: input_test, Y: y_test})
+        end_time = time.time()
+
+        accuracy_out, loss_out = session.run([accuracy, cost], feed_dict={X: input_test, Y: y_test})
+        print("accuracy: {}".format(accuracy_out)
+              + " takes {} s".format(end_time - begin_time)
+              + " loss_out: {}".format(loss_out))
+    else:
+        print("model not exist!")
+        exit(1)
+
+    print("Finished, takes {}s".format(time.time() - init_time))
