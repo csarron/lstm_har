@@ -1,0 +1,9 @@
+/Users/$USER/tf1.1/bin/python /Users/$USER/GitRepos/lstm-har/predict_lstm.py --model_folder=data
+using model folder
+predicting case:2732
+loading data takes 3040.1540 ms
+begin loading model
+model loaded, taking 49.9194 s
+test_acc: 100.000%, time: 250.7491 ms, cost: 0.1220
+For case:2733, predicted label is: 2
+Finished, takes 53.5109 s

@@ -122,7 +122,7 @@ if __name__ == "__main__":
     label_test_file = DATA_PATH + TEST + LABEL_TEST_FILE
     y_test = read_label(label_test_file)
 
-    # np.random.seed(0)
+    np.random.seed(0)
     sample_index = np.random.randint(len(y_test))
     print("predicting case:{}".format(sample_index))
     input_test_sample = input_test[np.array([sample_index])]
@@ -151,6 +151,7 @@ if __name__ == "__main__":
         if not __debug__:
             print('\n'.join(map(str, [op.name for op in graph.get_operations()])))
         session = tf.Session(graph=graph)
+
     begin_time = time.time()
     X, Y = get_tensor_by_op_name(graph, ["input", "label"])
     output, accuracy, cost = get_tensor_by_op_name(graph, ["output", "accuracy", "cost"])
