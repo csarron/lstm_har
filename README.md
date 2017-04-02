@@ -37,3 +37,8 @@ filtered out of the accelerometer as a preprocessing step for another 3D feature
 
 We got 91.89% test accuracy at 394th iteration, it took 9186.56s for training on CPU
 (MacBookPro12,1; Intel Core i7, 3.1GHz; Mem 16GB DDR3 1867 MHz)
+
+
+## Acknowledgement
+The original source code is modified from
+[guillaume-chevalier](https://github.com/guillaume-chevalier/LSTM-Human-Activity-Recognition)
