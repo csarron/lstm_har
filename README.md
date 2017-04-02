@@ -13,14 +13,9 @@ Classifying the type of movement amongst six categories:
 
 ## Dataset
 
-Data set can be downloaded [here](https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI HAR Dataset.zip)
+Dataset can be downloaded at https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI%20HAR%20Dataset.zip
 
-Follow this link to see a video of the 6 activities recorded in the experiment with one of the participants:
-
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=XOEN9W05_4A
-" target="_blank"><img src="http://img.youtube.com/vi/XOEN9W05_4A/0.jpg" 
-alt="Video of the experiment" width="400" height="300" border="10" /></a>
-<a href="https://youtu.be/XOEN9W05_4A"><center>[Watch video]</center></a>
+Follow this [link](https://youtu.be/XOEN9W05_4A) to see a video of the how data is collected
 
 > The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then
 sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window).
@@ -40,5 +35,5 @@ filtered out of the accelerometer as a preprocessing step for another 3D feature
 
 ## Results 
 
-with the model in this repo, it get 91.89% test accuracy at 394th iteration, it takes 9186.56s for training on CPU
+We got 91.89% test accuracy at 394th iteration, it took 9186.56s for training on CPU
 (MacBookPro12,1; Intel Core i7, 3.1GHz; Mem 16GB DDR3 1867 MHz)
