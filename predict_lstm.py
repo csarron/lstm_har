@@ -17,7 +17,7 @@ def read_data(signal_files):
     """
     signal_tensor = np.dstack([np.loadtxt(signal_file) for signal_file in signal_files])
     if not __debug__:
-        print('loaded tensor shape: ', signal_tensor.shape)
+        print('loaded input tensor shape: ', signal_tensor.shape)
     return signal_tensor
 
 
@@ -77,21 +77,21 @@ if __name__ == "__main__":
     model_file_name = "data/lstm_har.model"
     # np.random.seed(0)
     sample_index = np.random.randint(len(y_test))
-    print("case:{}".format(sample_index))
+    print("predicting case:{}".format(sample_index))
     input_test_sample = input_test[np.array([sample_index])]
     y_test_sample = y_test[np.array([sample_index])]
     # print("x{}y{}".format(input_test_sample.shape,y_test_sample.shape))
     init_end_time = time.time()
-    print("loading data takes {:6.4f}s".format(init_end_time - init_time))
+    print("loading data takes {:6.4f} ms".format((init_end_time - init_time) * 1000))
 
     if glob.glob(model_file_name + "*"):
-        print("begin restoring model")
+        print("begin loading model")
         begin_time = time.time()
         saver = tf.train.import_meta_graph(model_file_name + ".meta")
         session = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
         saver.restore(session, model_file_name)
         end_time = time.time()
-        print("model restored, taking {:6.4f} s".format(end_time - begin_time))
+        print("model loaded, taking {:6.4f} s".format((end_time - begin_time)))
         begin_time = time.time()
         graph = tf.get_default_graph()
         X, Y = get_tensor_by_op_name(graph, ["input", "label"])
@@ -103,10 +103,10 @@ if __name__ == "__main__":
         accuracy_out, loss_out = session.run([accuracy, cost],
                                              feed_dict={X: input_test_sample, Y: y_test_sample})
         print("test_acc: {:5.3f}%,".format(accuracy_out * 100)
-              + " time: {:6.4f} s,".format(end_time - begin_time)
+              + " time: {:6.4f} ms,".format((end_time - begin_time) * 1000)
               + " cost: {:6.4f}".format(loss_out))
-        print("For case:{}, predicted label is: {}".format(sample_index, np.argmax(label_prob) + 1))
-        print("Finished, takes {:6.4f}s".format(time.time() - init_time))
+        print("For case:{}, predicted label is: {}".format(sample_index + 1, np.argmax(label_prob) + 1))
+        print("Finished, takes {:6.4f} s".format(time.time() - init_time))
     else:
         print("model not exist!")
         exit(1)
