@@ -137,7 +137,7 @@ def maybe_download_data():
     print("")
 
     print("Downloading UCI HAR Dataset...")
-    data_file = "UCI HAR Dataset.zip"
+    data_file = "data/UCI HAR Dataset.zip"
     if not os.path.exists(data_file):
         urllib.urlretrieve("https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI HAR Dataset.zip",
                            data_file, reporthook=dl_progress)
