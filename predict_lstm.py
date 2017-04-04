@@ -78,35 +78,6 @@ def load_graph(frozen_graph_filename):
     return graph
 
 
-###
-"""
-w_in 9,32
-b_in 32
-
-rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights 64,128
-rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases 128
-rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights 64,128
-rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases 128
-
-w_out 32,6
-b_out 6
-"""
-
-
-###
-
-
-def print_weights(sess):
-    g = sess.graph
-    weights = ["w_in", "b_in", "w_out", "b_out",
-               "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
-               "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases",
-               "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights",
-               "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases"]
-    for name in weights:
-        print("{}:{}".format(name, sess.run(get_tensor_by_op_name(g, name))))
-
-
 if __name__ == "__main__":
     default_frozen_model = "data/lstm_model.pb"
     parser = argparse.ArgumentParser()
@@ -151,9 +122,9 @@ if __name__ == "__main__":
     label_test_file = DATA_PATH + TEST + LABEL_TEST_FILE
     y_test = read_label(label_test_file)
 
-    # np.random.seed(0)
-    sample_size = 2000
-    sample_shape = (40, 50)
+    np.random.seed(0)
+    sample_size = 100
+    sample_shape = (10, 10)
 
     sample_index = np.random.randint(len(y_test), size=sample_size)
     x_test_sample = x_test[sample_index]
@@ -200,17 +171,4 @@ if __name__ == "__main__":
     print("For cases: \n{}".format((sample_index + 1).reshape(sample_shape)))
 
     print("Predicted label are: \n{}".format((np.argmax(label_prob, 1) + 1).reshape(sample_shape)))
-
-    # export network weights and biases to text files
-    weights = ["w_in", "b_in", "w_out", "b_out",
-               "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
-               "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases",
-               "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights",
-               "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases"]
-    for name in weights:
-        v = session.run("{}:0".format(name))
-        var_file_name = "data/{}.csv".format(name.replace("/", "_"))
-        print("save {} to file: {}".format(name, var_file_name))
-        np.savetxt(var_file_name, v, delimiter=", ")
-
     print("Finished, takes {:6.4f} s".format(time.time() - init_time))

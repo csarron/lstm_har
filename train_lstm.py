@@ -8,6 +8,7 @@ import urllib
 import zipfile
 import os
 import sys
+import freeze_model
 
 
 def read_data(signal_files):
@@ -239,12 +240,15 @@ if __name__ == "__main__":
             save_start_time = time.time()
             saver.save(sess, model_file_name)
             print("Model saved at: {}, takes {:6.4f}s".format(model_file_name, (time.time() - save_start_time)))
-        print("Iter:{:3d},".format(epoch)
+        print("Iter:{:3d}, ".format(epoch)
               + "test_acc: {:6.4f}%,".format(accuracy_out * 100)
               + " loss:{:5.3f},".format(loss_out)
               + " t_train:{:6.4f}s,".format(train_time - begin_time)
               + " t_test:{:6.4f}s,".format(end_time - train_time)
-              + " best_test_acc:{:6.4f}".format(best_accuracy * 100) + " (at iter{:3d})".format(best_iter))
+              + " best_test_acc:{:6.4f}".format(best_accuracy * 100) + "(at iter {:3d})".format(best_iter))
 
     print("best epoch's test accuracy: {:6.4f}".format(best_accuracy * 100) + " at iter:{:3d}".format(best_iter))
+
+    # freeze model
+    freeze_model.do_freeze("data", "lstm_model")
     print("finished, takes {:6.4f}s in total".format(time.time() - init_time))

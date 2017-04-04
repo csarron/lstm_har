@@ -1,6 +1,6 @@
 import argparse
 import os
-
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.framework import graph_util
 
@@ -38,6 +38,17 @@ def freeze_graph(model_folder, frozen_model_name):
     with tf.Session() as sess:
         saver.restore(sess, input_checkpoint)
         print("model loaded")
+        # export network weights and biases to text files
+        weights = ["w_in", "b_in", "w_out", "b_out",
+                   "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
+                   "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases",
+                   "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights",
+                   "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases"]
+        for name in weights:
+            v = sess.run("{}:0".format(name))
+            var_file_name = "data/{}.csv".format(name.replace("/", "_"))
+            print("save {} to file: {}".format(name, var_file_name))
+            np.savetxt(var_file_name, v, delimiter=", ")
 
         # We use a built-in TF helper to export variables to constants
         output_graph_def = graph_util.convert_variables_to_constants(
@@ -56,6 +67,12 @@ def freeze_graph(model_folder, frozen_model_name):
         print("%d ops in the final graph." % len(output_graph_def.node))
 
 
+def do_freeze(model_folder, frozen_model_name):
+    freeze_graph(model_folder, frozen_model_name)
+
+    print("frozen graph bin saved to: {}.pb".format(frozen_model_name))
+    print("frozen graph text saved to: {}.pb.txt".format(frozen_model_name))
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_folder",
@@ -64,8 +81,6 @@ if __name__ == '__main__':
                         type=str, default="lstm_model", help="frozen model name")
     args = parser.parse_args()
 
-    freeze_graph(args.model_folder, args.frozen_model_name)
+    do_freeze(args.model_folder, args.frozen_model_name)
 
-    print("frozen graph bin saved to: {}.pb".format(args.frozen_model_name))
-    print("frozen graph text saved to: {}.pb.txt".format(args.frozen_model_name))
 
