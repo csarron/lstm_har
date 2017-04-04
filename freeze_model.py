@@ -49,6 +49,10 @@ def freeze_graph(model_folder, frozen_model_name):
         # Finally we serialize and dump the output graph to the filesystem
         with tf.gfile.GFile(output_graph, "wb") as f:
             f.write(output_graph_def.SerializeToString())
+
+        with tf.gfile.FastGFile("{}.txt".format(output_graph), "wb") as f:
+            f.write(str(output_graph_def))
+
         print("%d ops in the final graph." % len(output_graph_def.node))
 
 
@@ -62,4 +66,6 @@ if __name__ == '__main__':
 
     freeze_graph(args.model_folder, args.frozen_model_name)
 
-    print("frozen graph saved to: {}".format(args.frozen_model_name))
+    print("frozen graph bin saved to: {}.pb".format(args.frozen_model_name))
+    print("frozen graph text saved to: {}.pb.txt".format(args.frozen_model_name))
+
