@@ -139,6 +139,8 @@ def maybe_download_data():
     print("Downloading UCI HAR Dataset...")
     data_file = "data/UCI HAR Dataset.zip"
     if not os.path.exists(data_file):
+        if not os.path.exists("data"):
+            os.mkdir("data")
         urllib.urlretrieve("https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI HAR Dataset.zip",
                            data_file, reporthook=dl_progress)
         print(" downloaded.")
@@ -146,10 +148,10 @@ def maybe_download_data():
         print("UCI HAR Dataset.zip already downloaded.")
 
     print("Extracting UCI HAR Dataset.zip...")
-    extract_directory = os.path.abspath("data")
+    extract_directory = os.path.abspath("data/UCI HAR Dataset")
     if not os.path.exists(extract_directory):
         with zipfile.ZipFile(data_file, "r") as zip_ref:
-            zip_ref.extractall(extract_directory)
+            zip_ref.extractall("data")
     else:
         print("Dataset already extracted.")
 
