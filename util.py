@@ -49,7 +49,10 @@ def list_files(path):
             if os.path.isfile(os.path.join(path, data_file))]
 
 
-def get_data(data_type="test"):
+def get_data(data_type=None):
+    if data_type is None or not (data_type.lower() == "train" or data_type.lower() == "test"):
+        raise TypeError("data_type must be either train or test, you gave: {}".format(data_type))
+
     data_path = "data/UCI HAR Dataset/"
     signal_path = "Inertial Signals/"
     type_path = "{}/".format(data_type)

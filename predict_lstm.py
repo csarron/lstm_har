@@ -45,7 +45,7 @@ if __name__ == "__main__":
     label_prob = session.run(output, feed_dict={X: x_test_sample, Y: y_test_sample})
     end_time = time.time()
 
-    np.savetxt("data/label.csv", label_prob, '%.4f')
+    np.savetxt("data/label.log", label_prob, '%.4f')
 
     accuracy_out, loss_out = session.run([accuracy, cost],
                                          feed_dict={X: x_test_sample, Y: y_test_sample})
