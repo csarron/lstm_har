@@ -151,8 +151,10 @@ if __name__ == "__main__":
     label_test_file = DATA_PATH + TEST + LABEL_TEST_FILE
     y_test = read_label(label_test_file)
 
-    np.random.seed(0)
-    sample_size = 100
+    # np.random.seed(0)
+    sample_size = 2000
+    sample_shape = (40, 50)
+
     sample_index = np.random.randint(len(y_test), size=sample_size)
     x_test_sample = x_test[sample_index]
     y_test_sample = y_test[sample_index]
@@ -195,9 +197,9 @@ if __name__ == "__main__":
           + " time: {:6.4f} ms,".format((end_time - begin_time) * 1000)
           + " cost: {:6.4f}".format(loss_out))
 
-    print("For cases: \n{}".format((sample_index + 1).reshape((10, 10))))
+    print("For cases: \n{}".format((sample_index + 1).reshape(sample_shape)))
 
-    print("Predicted label are: \n{}".format((np.argmax(label_prob, 1) + 1).reshape((10, 10))))
+    print("Predicted label are: \n{}".format((np.argmax(label_prob, 1) + 1).reshape(sample_shape)))
 
     # export network weights and biases to text files
     weights = ["w_in", "b_in", "w_out", "b_out",
