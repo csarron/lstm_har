@@ -20,8 +20,8 @@ if __name__ == "__main__":
     # -----------------------------
     x_test, y_test = util.get_data("test")
 
-    sample_size = 4
-    sample_shape = (2, 2)
+    sample_size = 1
+    sample_shape = (1, 1)
 
     # np.random.seed(0)
     # sample_index = np.random.randint(len(y_test), size=sample_size)
@@ -46,6 +46,9 @@ if __name__ == "__main__":
     end_time = time.time()
 
     np.savetxt("data/label.log", label_prob, '%.4f')
+
+    inputs = session.run("relu:0", feed_dict={X: x_test_sample, Y: y_test_sample})
+    np.savetxt("data/inputs.log", inputs, '%.4f')
 
     accuracy_out, loss_out = session.run([accuracy, cost],
                                          feed_dict={X: x_test_sample, Y: y_test_sample})

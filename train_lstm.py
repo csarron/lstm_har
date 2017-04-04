@@ -64,7 +64,7 @@ def lstm_net(feature_matrix, conf):
 
     # Get LSTM outputs, the states are internal to the LSTM cells,they are not our attention here
     outputs, _ = rnn.static_rnn(lstm_layers, inputs, dtype=tf.float32)
-    # outputs' shape: a list of length "time_step" containing tensors of shape [batch_size, num_classes]
+    # outputs' shape: a list of length "time_step" containing tensors of shape [batch_size, hidden_units]
 
     # Get last time step's output feature for a "many to one" style classifier,
     lstm_last_output = outputs[-1]
