@@ -49,12 +49,12 @@ def list_files(path):
             if os.path.isfile(os.path.join(path, data_file))]
 
 
-def get_tensor_by_op_name(graph, names):
-    return [graph.get_operation_by_name(name).outputs[0] for name in names]
+def get_tensor_by_op_name(g, names):
+    return [g.get_operation_by_name(n).outputs[0] for n in names]
 
 
-def get_tensor_by_name(graph, names):
-    return [graph.get_tensor_by_name(name) for name in names]
+def get_tensor_by_name(g, names):
+    return [g.get_tensor_by_name(n).outputs[0] for n in names]
 
 
 def load_graph(frozen_graph_filename):
@@ -76,6 +76,35 @@ def load_graph(frozen_graph_filename):
             producer_op_list=None
         )
     return graph
+
+
+###
+"""
+w_in 9,32
+b_in 32
+
+rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights 64,128
+rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases 128
+rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights 64,128
+rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases 128
+
+w_out 32,6
+b_out 6
+"""
+
+
+###
+
+
+def print_weights(sess):
+    g = sess.graph
+    weights = ["w_in", "b_in", "w_out", "b_out",
+               "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
+               "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases",
+               "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights",
+               "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases"]
+    for name in weights:
+        print("{}:{}".format(name, sess.run(get_tensor_by_op_name(g, name))))
 
 
 if __name__ == "__main__":
@@ -117,19 +146,20 @@ if __name__ == "__main__":
     if not __debug__:
         print(input_data_test_files)
 
-    input_test = read_data(input_data_test_files)
+    x_test = read_data(input_data_test_files)
 
     label_test_file = DATA_PATH + TEST + LABEL_TEST_FILE
     y_test = read_label(label_test_file)
 
     np.random.seed(0)
-    sample_index = np.random.randint(len(y_test))
-    print("predicting case:{}".format(sample_index))
-    input_test_sample = input_test[np.array([sample_index])]
-    y_test_sample = y_test[np.array([sample_index])]
-    # print("x{}y{}".format(input_test_sample.shape,y_test_sample.shape))
+    sample_size = 100
+    sample_index = np.random.randint(len(y_test), size=sample_size)
+    x_test_sample = x_test[sample_index]
+    y_test_sample = y_test[sample_index]
+    # print("x_sample:{}, y_sample:{}".format(x_test_sample.shape, y_test_sample.shape))
     init_end_time = time.time()
     print("loading data takes {:6.4f} ms".format((init_end_time - init_time) * 1000))
+    print("predicting {} cases:".format(sample_size))
 
     if not use_frozen_model:
         print("begin loading model")
@@ -156,13 +186,29 @@ if __name__ == "__main__":
     X, Y = get_tensor_by_op_name(graph, ["input", "label"])
     output, accuracy, cost = get_tensor_by_op_name(graph, ["output", "accuracy", "cost"])
 
-    label_prob = session.run(output, feed_dict={X: input_test_sample, Y: y_test_sample})
+    label_prob = session.run(output, feed_dict={X: x_test_sample, Y: y_test_sample})
     end_time = time.time()
 
     accuracy_out, loss_out = session.run([accuracy, cost],
-                                         feed_dict={X: input_test_sample, Y: y_test_sample})
+                                         feed_dict={X: x_test_sample, Y: y_test_sample})
     print("test_acc: {:5.3f}%,".format(accuracy_out * 100)
           + " time: {:6.4f} ms,".format((end_time - begin_time) * 1000)
           + " cost: {:6.4f}".format(loss_out))
-    print("For case:{}, predicted label is: {}".format(sample_index + 1, np.argmax(label_prob) + 1))
+
+    print("For cases: \n{}".format((sample_index + 1).reshape((10, 10))))
+
+    print("Predicted label are: \n{}".format((np.argmax(label_prob, 1) + 1).reshape((10, 10))))
+
+    # export network weights and biases to text files
+    weights = ["w_in", "b_in", "w_out", "b_out",
+               "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
+               "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases",
+               "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights",
+               "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases"]
+    for name in weights:
+        v = session.run("{}:0".format(name))
+        var_file_name = "data/{}.csv".format(name.replace("/", "_"))
+        print("save {} to file: {}".format(name, var_file_name))
+        np.savetxt(var_file_name, v, delimiter=", ")
+
     print("Finished, takes {:6.4f} s".format(time.time() - init_time))
