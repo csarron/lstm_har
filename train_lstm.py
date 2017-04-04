@@ -1,56 +1,10 @@
 #!/usr/bin/python
 from __future__ import print_function
+import freeze_model
 import tensorflow as tf
 import tensorflow.contrib.rnn as rnn
-import numpy as np
 import time
-import urllib
-import zipfile
-import os
-import sys
-import freeze_model
-
-
-def read_data(signal_files):
-    """
-    load sensor data into a tensor 
-    
-    :param signal_files: a list of sensor data files
-    :return: a tensor represents sensor data
-    """
-    signal_tensor = np.dstack([np.loadtxt(signal_file) for signal_file in signal_files])
-    if not __debug__:
-        print('loaded tensor shape: ', signal_tensor.shape)
-    return signal_tensor
-
-
-def read_label(label_file):
-    """
-    load label data into a one-hot tensor
-    
-    :param label_file: the file that contains the label
-    :return: a one-hot represented tensor
-    """
-    y_ = np.loadtxt(label_file, dtype=np.int32)
-
-    if not __debug__:
-        print('loaded label shape: ', y_.shape)
-
-    # use one-hot encoding
-    y_one_hot = np.zeros((y_.size, y_.max()))
-    y_one_hot[np.arange(y_.size), y_ - 1] = 1
-
-    return y_one_hot
-
-
-def list_files(path):
-    """
-    get the files under a folder
-    :param path: data path
-    :return: a list of data files
-    """
-    return [os.path.join(path, data_file) for data_file in os.listdir(path)
-            if os.path.isfile(os.path.join(path, data_file))]
+import util
 
 
 class Config(object):
@@ -122,73 +76,16 @@ def lstm_net(feature_matrix, conf):
     return tf.nn.xw_plus_b(lstm_last_output, w_out, b_out, name="output")
 
 
-def dl_progress(count, block_size, total_size):
-    percent = int(count * block_size * 100 / total_size)
-    sys.stdout.write("\r%2d%%" % percent)
-    sys.stdout.flush()
-
-
-def maybe_download_data():
-    print("")
-
-    print("Downloading UCI HAR Dataset...")
-    data_file = "data/UCI HAR Dataset.zip"
-    if not os.path.exists(data_file):
-        if not os.path.exists("data"):
-            os.mkdir("data")
-        urllib.urlretrieve("https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI HAR Dataset.zip",
-                           data_file, reporthook=dl_progress)
-        print(" downloaded.")
-    else:
-        print("UCI HAR Dataset.zip already downloaded.")
-
-    print("Extracting UCI HAR Dataset.zip...")
-    extract_directory = os.path.abspath("data/UCI HAR Dataset")
-    if not os.path.exists(extract_directory):
-        with zipfile.ZipFile(data_file, "r") as zip_ref:
-            zip_ref.extractall("data")
-    else:
-        print("Dataset already extracted.")
-
-
-def get_data():
-    data_path = "data/UCI HAR Dataset/"
-    signal_path = "Inertial Signals/"
-    train_path = "train/"
-    test_path = "test/"
-    train_label_file = "y_train.txt"
-    test_label_file = "y_test.txt"
-
-    input_data_path_train = data_path + train_path + signal_path
-    input_data_path_test = data_path + test_path + signal_path
-
-    input_data_train_files = list_files(input_data_path_train)
-    input_data_test_files = list_files(input_data_path_test)
-
-    if not __debug__:
-        print(input_data_train_files)
-        print(input_data_test_files)
-
-    input_train = read_data(input_data_train_files)
-    input_test = read_data(input_data_test_files)
-
-    train_label_file = data_path + train_path + train_label_file
-    label_test_file = data_path + test_path + test_label_file
-    label_train = read_label(train_label_file)
-    label_test = read_label(label_test_file)
-
-    return (input_train, label_train), (input_test, label_test)
-
 if __name__ == "__main__":
-    maybe_download_data()
+    util.maybe_download_data()
 
     print("Begin training model...")
     init_time = time.time()
     # -----------------------------
     # step1: load and prepare data
     # -----------------------------
-    (x_train, y_train), (x_test, y_test) = get_data()
-
+    x_train, y_train = util.get_data("train")
+    x_test, y_test = util.get_data("test")
     # -----------------------------------
     # step2: define parameters for model
     # -----------------------------------
