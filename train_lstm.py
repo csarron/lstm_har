@@ -21,8 +21,8 @@ class Config(object):
         # Training
         self.learning_rate = 0.0025
         self.lambda_loss = 0.0015
-        self.training_epochs = 1000
-        self.batch_size = 1500
+        self.training_epochs = 2000
+        self.batch_size = 2500
 
         # LSTM structure
         self.input_dim = len(input_data[0][0])  # Features count is of 9: three 3D sensors features over time
