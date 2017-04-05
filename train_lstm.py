@@ -82,17 +82,18 @@ if __name__ == "__main__":
     print("Begin training model...")
     init_time = time.time()
     # -----------------------------
-    # step1: load and prepare data
+    # step1: Prepare data
     # -----------------------------
     x_train, y_train = util.get_data("train")
     x_test, y_test = util.get_data("test")
+
     # -----------------------------------
-    # step2: define parameters for model
+    # step2: Define parameters for model
     # -----------------------------------
     config = Config(x_train)
 
     # ------------------------------------------------------
-    # step3: Let's get serious and build the neural network
+    # step3: Build the neural network
     # ------------------------------------------------------
     X = tf.placeholder(tf.float32, [None, config.time_steps, config.input_dim], name="input")
     Y = tf.placeholder(tf.float32, [None, config.num_classes], name="label")
@@ -114,7 +115,7 @@ if __name__ == "__main__":
     # step4: Train the neural network
     # --------------------------------------------
     # Note that log_device_placement can be turned ON but will cause console spam.
-    sess = tf.InteractiveSession(config=tf.ConfigProto(log_device_placement=False))
+    sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
     tf.global_variables_initializer().run()
     model_file_name = "data/lstm_har.model"
     saver = tf.train.Saver()
@@ -147,5 +148,6 @@ if __name__ == "__main__":
     print("best epoch's test accuracy: {:6.4f}".format(best_accuracy * 100) + " at iter:{:3d}".format(best_iter))
 
     # freeze model
+    print("Begin freezing model...")
     freeze_model.do_freeze("data", "lstm_model")
-    print("finished, takes {:6.4f}s in total".format(time.time() - init_time))
+    print("All finished, takes {:6.4f}s in total".format(time.time() - init_time))
