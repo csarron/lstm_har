@@ -1,7 +1,0 @@
-/Users/$USER/tf1.1/bin/python /Users/$USER/GitRepos/lstm-har/predict_lstm.py --model_folder=data
-using frozen model: data/lstm_model.pb
-predicting case:2732
-loading data takes 3062.7480 ms
-test_acc: 100.000%, time: 1497.0009 ms, cost: 0.1220
-For case:2733, predicted label is: 2
-Finished, takes 9.2250 s
