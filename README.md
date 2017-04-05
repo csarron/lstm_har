@@ -30,7 +30,7 @@ filtered out of the accelerometer as a preprocessing step for another 3D feature
 ## Usage
 1. Install TensorFlow r1.1
 2. Clone this repo by `git clone https://github.com/csarron/lstm_har.git`
-3. For training the model, use `python train_lstm.py` (optional step, since model data already provided)
+3. For training the model, use `python train_lstm.py` (optional step, since model is provided at data/lstm_model.pb)
 4. For prediction, use `python predict_lstm.py`
 
 ## Results 
