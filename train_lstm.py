@@ -21,8 +21,8 @@ class Config(object):
         # Training
         self.learning_rate = 0.0025
         self.lambda_loss = 0.0015
-        self.training_epochs = 1000
-        self.batch_size = 1500
+        self.training_epochs = 2000
+        self.batch_size = 2500
 
         # LSTM structure
         self.input_dim = len(input_data[0][0])  # Features count is of 9: three 3D sensors features over time
@@ -116,7 +116,8 @@ if __name__ == "__main__":
     # --------------------------------------------
     # Note that log_device_placement can be turned ON but will cause console spam.
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
-    tf.global_variables_initializer().run()
+    init_var = tf.global_variables_initializer()
+    sess.run(init_var)
     model_file_name = "data/lstm_har.model"
     saver = tf.train.Saver()
     best_accuracy = 0.0
