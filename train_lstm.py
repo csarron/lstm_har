@@ -116,7 +116,8 @@ if __name__ == "__main__":
     # --------------------------------------------
     # Note that log_device_placement can be turned ON but will cause console spam.
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
-    tf.global_variables_initializer().run()
+    init_var = tf.global_variables_initializer()
+    sess.run(init_var)
     model_file_name = "data/lstm_har.model"
     saver = tf.train.Saver()
     best_accuracy = 0.0
