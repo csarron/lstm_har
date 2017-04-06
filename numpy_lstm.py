@@ -25,7 +25,7 @@ b_out 6
 weights = {}
 for name in weight_names:
     var_file_name = "data/{}.csv".format(name.replace("/", "_"))
-    weights[name] = np.loadtxt(var_file_name, delimiter=", ")
+    weights[name] = np.loadtxt(var_file_name, delimiter=",")
     # print("{}: {}".format(name, weights[name]))
 
 

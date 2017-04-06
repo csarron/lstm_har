@@ -48,7 +48,7 @@ def freeze_graph(model_folder, frozen_model_name):
             v = sess.run("{}:0".format(name))
             var_file_name = "data/{}.csv".format(name.replace("/", "_"))
             print("save {} to file: {}".format(name, var_file_name))
-            np.savetxt(var_file_name, v, delimiter=", ")
+            np.savetxt(var_file_name, v, delimiter=",")
 
         # We use a built-in TF helper to export variables to constants
         output_graph_def = graph_util.convert_variables_to_constants(
