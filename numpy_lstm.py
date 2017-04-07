@@ -80,16 +80,17 @@ if __name__ == "__main__":
 
     layer_size = 2
 
-    sample_index = np.random.randint(0, len(y_test))
+    sample_size = 100
 
     p_start = time.time()
-    labels_predicted = [predict(x_test[i]) for i in xrange(len(y_test))]
+    labels_predicted = [predict(x_test[i]) for i in xrange(sample_size)]
     p_end = time.time()
     print("prediction time: {}s".format(p_end - p_start))
 
     labels = np.argmax(y_test, 1) + 1
     print("label:\n{}\nY:\n{}".format(np.asarray(labels_predicted), labels))
-    print("accuracy: {}".format(np.sum(labels == np.asarray(labels_predicted)) * 1.0 * 100 / len(y_test)))
+    print("accuracy: {}".format(np.sum(labels[np.arange(sample_size)] == np.asarray(labels_predicted))
+                                * 1.0 * 100 / sample_size))
     np.savetxt("data/labels_np.log", labels_predicted, fmt="%d")
 
     print("Finished, takes {:6.4f} s".format(time.time() - start_time))
