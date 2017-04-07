@@ -62,8 +62,9 @@ def predict(x_):
             inputs[step] = h
             outputs.append(h)
     out_prob = np.dot(outputs[-1], weights["w_out"]) + weights["b_out"]
-    # print("out_prob:{}\n{}".format(out_prob.shape, out_prob))
-    # np.savetxt("data/label_prob_np.log", out_prob, '%.4f')
+    print("out_prob: {}".format(out_prob))
+    with open("data/label_prob_np.log", "a") as f:
+        np.savetxt(f, out_prob, '%.4f')
 
     return np.argmax(out_prob) + 1
 
