@@ -81,7 +81,11 @@ if __name__ == "__main__":
 
     sample_index = np.random.randint(0, len(y_test))
 
+    p_start = time.time()
     labels_predicted = [predict(x_test[i]) for i in xrange(len(y_test))]
+    p_end = time.time()
+    print("prediction time: {}s".format(p_end - p_start))
+
     labels = np.argmax(y_test, 1) + 1
     print("label:\n{}\nY:\n{}".format(np.asarray(labels_predicted), labels))
     print("accuracy: {}".format(np.sum(labels == np.asarray(labels_predicted)) * 1.0 * 100 / len(y_test)))
