@@ -26,7 +26,7 @@ class Config(object):
 
         # LSTM structure
         self.input_dim = len(input_data[0][0])  # Features count is of 9: three 3D sensors features over time
-        self.layer_size = 3
+        self.layer_size = 2
         self.hidden_units = 64  # nb of neurons inside the neural network
         self.num_classes = 6  # Final output classes
 

@@ -43,9 +43,7 @@ def freeze_graph(model_folder, frozen_model_name):
                    "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
                    "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases",
                    "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights",
-                   "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases",
-                   "rnn/multi_rnn_cell/cell_2/basic_lstm_cell/weights",
-                   "rnn/multi_rnn_cell/cell_2/basic_lstm_cell/biases"]
+                   "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases"]
         for name in weights:
             v = sess.run("{}:0".format(name))
             var_file_name = "data/{}.csv".format(name.replace("/", "_"))
