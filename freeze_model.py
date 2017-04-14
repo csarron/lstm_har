@@ -43,7 +43,9 @@ def freeze_graph(model_folder, frozen_model_name):
                    "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
                    "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases",
                    "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights",
-                   "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases"]
+                   "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases",
+                   "rnn/multi_rnn_cell/cell_2/basic_lstm_cell/weights",
+                   "rnn/multi_rnn_cell/cell_2/basic_lstm_cell/biases"]
         for name in weights:
             v = sess.run("{}:0".format(name))
             var_file_name = "data/{}.csv".format(name.replace("/", "_"))
@@ -73,6 +75,7 @@ def do_freeze(model_folder, frozen_model_name):
     print("frozen graph bin saved to: {}.pb".format(frozen_model_name))
     print("frozen graph text saved to: {}.pb.txt".format(frozen_model_name))
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_folder",
@@ -82,5 +85,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     do_freeze(args.model_folder, args.frozen_model_name)
-
-
