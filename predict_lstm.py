@@ -45,10 +45,10 @@ if __name__ == "__main__":
     np.savetxt("data/label_prob.log", label_prob, '%.7e')
 
     inputs = session.run("input:0", feed_dict={X: x_test_sample, Y: y_test_sample})
-    np.savetxt("data/input.log", inputs, '%.7e')
+    np.savetxt("data/input.log", np.reshape(inputs, [-1, 9]), '%.7e')
 
     inputs = session.run("transpose:0", feed_dict={X: x_test_sample, Y: y_test_sample})
-    np.savetxt("data/transpose.log", inputs, '%.7e')
+    np.savetxt("data/transpose.log", np.reshape(inputs, [-1, 9]), '%.7e')
 
     inputs = session.run("reshape:0", feed_dict={X: x_test_sample, Y: y_test_sample})
     np.savetxt("data/reshape.log", inputs, '%.7e')

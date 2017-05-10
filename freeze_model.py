@@ -21,7 +21,7 @@ def freeze_graph(model_folder, frozen_model_name):
     # Before exporting our graph, we need to precise what is our output node
     # This is how TF decides what part of the Graph he has to keep and what part it can dump
     # NOTE: this variable is plural, because you can have multiple output nodes
-    output_node_names = ["output"]
+    output_node_names = ["output", "accuracy", "cost"]
     # We clear devices to allow TensorFlow to control on which device it will load operations
     clear_devices = True
 

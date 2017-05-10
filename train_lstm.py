@@ -21,7 +21,7 @@ class Config(object):
         # Training
         self.learning_rate = 0.0025
         self.lambda_loss = 0.0015
-        self.training_epochs = 2000
+        self.training_epochs = 500
         self.batch_size = 2500
 
         # LSTM structure
@@ -137,6 +137,7 @@ if __name__ == "__main__":
             best_accuracy = accuracy_out
             best_iter = epoch
             save_start_time = time.time()
+            print("Begin saving model...")
             saver.save(sess, model_file_name)
             print("Model saved at: {}, takes {:6.4f}s".format(model_file_name, (time.time() - save_start_time)))
         print("Iter:{:3d}, ".format(epoch)
