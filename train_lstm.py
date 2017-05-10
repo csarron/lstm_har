@@ -42,7 +42,7 @@ def lstm_net(feature_matrix, conf):
     """
 
     # Exchange dim 1 and dim 0
-    feature_matrix = tf.transpose(feature_matrix, [1, 0, 2])
+    feature_matrix = tf.transpose(feature_matrix, [1, 0, 2], name="transpose")
     # New feature_mat's shape: [time_steps, batch_size, input_dim]
 
     # Temporarily crush the feature_mat's dimensions
