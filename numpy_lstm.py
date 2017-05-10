@@ -48,7 +48,7 @@ def calc_cell_one_step(in_, c_, h_, l):
 
 def predict(x_):
     inputs = np.maximum(np.dot(x_, weights["w_in"]) + weights["b_in"], 0)
-    # np.savetxt("data/inputs_np.log", inputs, '%.8f')
+    # np.savetxt("data/inputs_np.log", inputs, '%.8e')
     hidden_units = len(weights["b_in"])
 
     inputs = np.split(inputs, time_steps, 0)
@@ -64,7 +64,7 @@ def predict(x_):
     out_prob = np.dot(outputs[-1], weights["w_out"]) + weights["b_out"]
     # print("out_prob: {}".format(out_prob))
     with open("data/label_prob_np.log", "a") as f:
-        np.savetxt(f, out_prob, '%.4f')
+        np.savetxt(f, out_prob, '%.8e')
 
     return np.argmax(out_prob) + 1
 

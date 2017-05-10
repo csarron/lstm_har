@@ -42,13 +42,19 @@ if __name__ == "__main__":
     label_prob = session.run(output, feed_dict={X: x_test_sample, Y: y_test_sample})
     end_time = time.time()
 
-    np.savetxt("data/label_prob.log", label_prob, '%.4f')
+    np.savetxt("data/label_prob.log", label_prob, '%.7e')
+
+    inputs = session.run("input:0", feed_dict={X: x_test_sample, Y: y_test_sample})
+    np.savetxt("data/input.log", inputs, '%.7e')
+
+    inputs = session.run("transpose:0", feed_dict={X: x_test_sample, Y: y_test_sample})
+    np.savetxt("data/transpose.log", inputs, '%.7e')
 
     inputs = session.run("reshape:0", feed_dict={X: x_test_sample, Y: y_test_sample})
-    np.savetxt("data/reshape.log", inputs, '%.8f')
+    np.savetxt("data/reshape.log", inputs, '%.7e')
 
     inputs = session.run("relu:0", feed_dict={X: x_test_sample, Y: y_test_sample})
-    np.savetxt("data/inputs.log", inputs, '%.8f')
+    np.savetxt("data/relu.log", inputs, '%.7e')
 
     accuracy_out, loss_out = session.run([accuracy, cost],
                                          feed_dict={X: x_test_sample, Y: y_test_sample})
