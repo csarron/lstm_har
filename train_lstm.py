@@ -164,6 +164,7 @@ if __name__ == "__main__":
 
     # freeze model
     print("Begin freezing model...")
-    freeze_model.do_freeze(model_checkpoint, "lstm_har{}layer{}units{}".format(args.layer, args.units, best_accuracy),
+    freeze_model.do_freeze(model_checkpoint,
+                           "lstm_har{}layer{}units{:4.4}".format(args.layer, args.units, best_accuracy * 100),
                            "input", "output")
     print("All finished, takes {:6.4f}s in total".format(time.time() - init_time))
