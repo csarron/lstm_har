@@ -84,7 +84,7 @@ if __name__ == "__main__":
                         help="lay size of the LSTM model")
     parser.add_argument("--units", type=int, default=32,
                         help="hidden units of the LSTM model")
-    parser.add_argument("--epochs", type=int, default=2500,
+    parser.add_argument("--epochs", type=int, default=1000,
                         help="training epochs of the LSTM model")
     args = parser.parse_args()
 
@@ -164,5 +164,5 @@ if __name__ == "__main__":
 
     # freeze model
     print("Begin freezing model...")
-    freeze_model.do_freeze(model_checkpoint, "lstm_{}layer{}units".format(args.layer, args.units), "input", "output")
+    freeze_model.do_freeze(model_checkpoint, "lstm_har{}layer{}units".format(args.layer, args.units), "input", "output")
     print("All finished, takes {:6.4f}s in total".format(time.time() - init_time))
