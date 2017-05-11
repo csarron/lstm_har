@@ -1,4 +1,5 @@
 from __future__ import print_function
+import glob
 import numpy as np
 import os
 import sys
@@ -58,9 +59,8 @@ def get_data(data_type=None):
     type_path = "{}/".format(data_type)
     label_file = "y_{}.txt".format(data_type)
 
-    input_data_path = data_path + type_path + signal_path
-
-    input_data_files = list_files(input_data_path)
+    input_data_path = data_path + type_path + signal_path + '/*.txt'
+    input_data_files = sorted(glob.glob(input_data_path))
 
     if not __debug__:
         print(input_data_files)

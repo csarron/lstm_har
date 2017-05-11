@@ -42,20 +42,6 @@ if __name__ == "__main__":
     label_prob = session.run(output, feed_dict={X: x_test_sample, Y: y_test_sample})
     end_time = time.time()
 
-    np.savetxt("data/label_prob.log", label_prob, '%.7e')
-
-    inputs = session.run("input:0", feed_dict={X: x_test_sample, Y: y_test_sample})
-    np.savetxt("data/input.log", np.reshape(inputs, [-1, 9]), '%.7e')
-
-    inputs = session.run("transpose:0", feed_dict={X: x_test_sample, Y: y_test_sample})
-    np.savetxt("data/transpose.log", np.reshape(inputs, [-1, 9]), '%.7e')
-
-    inputs = session.run("reshape:0", feed_dict={X: x_test_sample, Y: y_test_sample})
-    np.savetxt("data/reshape.log", inputs, '%.7e')
-
-    inputs = session.run("relu:0", feed_dict={X: x_test_sample, Y: y_test_sample})
-    np.savetxt("data/relu.log", inputs, '%.7e')
-
     accuracy_out, loss_out = session.run([accuracy, cost],
                                          feed_dict={X: x_test_sample, Y: y_test_sample})
     print("test_acc: {:5.3f}%,".format(accuracy_out * 100)
@@ -64,7 +50,23 @@ if __name__ == "__main__":
 
     print("For cases: \n{}".format((sample_index + 1)))
     labels_predicted = (np.argmax(label_prob, 1) + 1)
-    np.savetxt("data/labels.log", labels_predicted, fmt="%d")
 
     print("Predicted labels are: \n{}".format((np.argmax(label_prob, 1) + 1)))
     print("Finished, takes {:6.4f} s".format(time.time() - init_time))
+
+    if not __debug__:
+        np.savetxt("data/label_prob.log", label_prob, '%.7e')
+        np.savetxt("data/x.log", np.reshape(x_test_sample, [-1, 9]), '%.7e')
+
+        inputs = session.run("input:0", feed_dict={X: x_test_sample, Y: y_test_sample})
+        np.savetxt("data/input.log", np.reshape(inputs, [-1, 9]), '%.7e')
+
+        inputs = session.run("transpose:0", feed_dict={X: x_test_sample, Y: y_test_sample})
+        np.savetxt("data/transpose.log", np.reshape(inputs, [-1, 9]), '%.7e')
+
+        inputs = session.run("reshape:0", feed_dict={X: x_test_sample, Y: y_test_sample})
+        np.savetxt("data/reshape.log", inputs, '%.7e')
+
+        inputs = session.run("relu:0", feed_dict={X: x_test_sample, Y: y_test_sample})
+        np.savetxt("data/relu.log", inputs, '%.7e')
+        np.savetxt("data/labels.log", labels_predicted, fmt="%d")
