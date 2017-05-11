@@ -1,6 +1,7 @@
 UCI HAR Dataset*
 __MACOSX*
 .DS*
-*.model.*
+*.ckpt.*
 *.log
 checkpoint
+*.csv

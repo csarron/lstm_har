@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from __future__ import print_function
+import argparse
 import freeze_model
 import tensorflow as tf
 import tensorflow.contrib.rnn as rnn
@@ -13,7 +14,7 @@ class Config(object):
     the input should be feature matrix of training and testing
     """
 
-    def __init__(self, input_data):
+    def __init__(self, input_data, layer_size, hidden_units, epochs):
         # Input data
         self.train_count = len(input_data)  # 7352 training series
         self.time_steps = len(input_data[0])  # 128 time_steps per series
@@ -21,13 +22,13 @@ class Config(object):
         # Training
         self.learning_rate = 0.0025
         self.lambda_loss = 0.0015
-        self.training_epochs = 500
+        self.training_epochs = epochs
         self.batch_size = 2500
 
         # LSTM structure
         self.input_dim = len(input_data[0][0])  # Features count is of 9: three 3D sensors features over time
-        self.layer_size = 2
-        self.hidden_units = 32  # nb of neurons inside the neural network
+        self.layer_size = layer_size
+        self.hidden_units = hidden_units  # nb of neurons inside the neural network
         self.num_classes = 6  # Final output classes
 
 
@@ -77,9 +78,21 @@ def lstm_net(feature_matrix, conf):
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--layer", type=int, default=2,
+                        help="lay size of the LSTM model")
+    parser.add_argument("--units", type=int, default=32,
+                        help="hidden units of the LSTM model")
+    parser.add_argument("--epochs", type=int, default=2500,
+                        help="training epochs of the LSTM model")
+    args = parser.parse_args()
+
     util.maybe_download_data()
 
-    print("Begin training model...")
+    print("Begin training model({} layer, {} hidden units, {} training epochs)..."
+          .format(args.layer, args.units, args.epochs))
+
     init_time = time.time()
     # -----------------------------
     # step1: Prepare data
@@ -90,7 +103,7 @@ if __name__ == "__main__":
     # -----------------------------------
     # step2: Define parameters for model
     # -----------------------------------
-    config = Config(x_train)
+    config = Config(x_train, args.layer, args.units, args.epochs)
 
     # ------------------------------------------------------
     # step3: Build the neural network
@@ -118,7 +131,7 @@ if __name__ == "__main__":
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
     init_var = tf.global_variables_initializer()
     sess.run(init_var)
-    model_file_name = "data/lstm_har.model"
+    model_checkpoint = "data/lstm_har{}layer{}units.ckpt".format(args.layer, args.units)
     saver = tf.train.Saver()
     best_accuracy = 0.0
     best_iter = 0
@@ -138,8 +151,8 @@ if __name__ == "__main__":
             best_iter = epoch
             save_start_time = time.time()
             print("Begin saving model...")
-            saver.save(sess, model_file_name)
-            print("Model saved at: {}, takes {:6.4f}s".format(model_file_name, (time.time() - save_start_time)))
+            saver.save(sess, model_checkpoint)
+            print("Model saved at: {}, takes {:6.4f}s".format(model_checkpoint, (time.time() - save_start_time)))
         print("Iter:{:3d}, ".format(epoch)
               + "test_acc: {:6.4f}%,".format(accuracy_out * 100)
               + " loss:{:5.3f},".format(loss_out)
@@ -151,5 +164,5 @@ if __name__ == "__main__":
 
     # freeze model
     print("Begin freezing model...")
-    freeze_model.do_freeze("data", "lstm_model")
+    freeze_model.do_freeze(model_checkpoint, "lstm_{}layer{}units".format(args.layer, args.units), "input", "output")
     print("All finished, takes {:6.4f}s in total".format(time.time() - init_time))

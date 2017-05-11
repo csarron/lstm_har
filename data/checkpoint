@@ -1,2 +1,2 @@
-model_checkpoint_path: "lstm_har.model"
-all_model_checkpoint_paths: "lstm_har.model"
+model_checkpoint_path: "lstm_har2layer32units.ckpt"
+all_model_checkpoint_paths: "lstm_har2layer32units.ckpt"
