@@ -84,7 +84,7 @@ if __name__ == "__main__":
                         help="lay size of the LSTM model")
     parser.add_argument("--unit", type=int, default=32,
                         help="hidden unit of the LSTM model")
-    parser.add_argument("--epochs", type=int, default=100,
+    parser.add_argument("--epochs", type=int, default=3000,
                         help="training epochs of the LSTM model")
     args = parser.parse_args()
 
