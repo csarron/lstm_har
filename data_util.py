@@ -80,25 +80,28 @@ def _dl_progress(count, block_size, total_size):
 
 def maybe_prepare_data():
     print("")
-
-    print("Downloading UCI HAR Dataset...")
-    data_file = "data/UCI HAR Dataset.zip"
-    if not os.path.exists(data_file):
-        if not os.path.exists("data"):
-            os.mkdir("data")
-        urllib.urlretrieve("https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI HAR Dataset.zip",
-                           data_file, reporthook=_dl_progress)
-        print(" downloaded.")
-    else:
-        print("UCI HAR Dataset.zip already downloaded.")
-
-    print("Extracting UCI HAR Dataset.zip...")
     extract_directory = os.path.abspath("data/UCI HAR Dataset")
-    if not os.path.exists(extract_directory):
+    data_file = "data/UCI HAR Dataset.zip"
+
+    if os.path.exists(extract_directory):
+        print("UCI HAR Dataset already prepared")
+        print("")
+        return
+    else:
+        if os.path.exists(data_file):
+            print("UCI HAR Dataset.zip already downloaded")
+        else:
+            print("Downloading UCI HAR Dataset...")
+            if not os.path.exists("data"):
+                os.mkdir("data")
+            urllib.urlretrieve("https://archive.ics.uci.edu/ml/machine-learning-databases/00240/UCI HAR Dataset.zip",
+                               data_file, reporthook=_dl_progress)
+            print("UCI HAR Dataset.zip downloaded")
+        print("Extracting UCI HAR Dataset.zip...")
         with zipfile.ZipFile(data_file, "r") as zip_ref:
             zip_ref.extractall("data")
-    else:
-        print("Dataset already extracted.")
+            print("UCI HAR Dataset prepared")
+        print("")
 
 
 def zip_files(zip_file, files):
@@ -107,10 +110,13 @@ def zip_files(zip_file, files):
     :param files: pattern of a list of files
     :return: none
     """
+    file_path = os.path.dirname(zip_file)
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
     with zipfile.ZipFile(zip_file, "w") as zip_ref:
         for file_item in glob.glob(files):
             print("adding {} to {}".format(file_item, zip_file))
             zip_ref.write(file_item)
 
 # if __name__ == '__main__':
-#     zip_files("data/ckpt.zip", "data/*.ckpt.*")
+#     zip_files("model/{}.ckpt.zip".format("2layer32unit"), "model/{}.ckpt.*".format("2layer32unit"))

@@ -3,3 +3,4 @@
 __MACOSX*
 .DS*
 *.pyc
+data/
