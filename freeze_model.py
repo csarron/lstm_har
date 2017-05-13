@@ -1,5 +1,4 @@
 import argparse
-import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.framework import dtypes
@@ -9,10 +8,10 @@ from tensorflow.python.training import saver as saver_lib
 
 
 # modified from https://blog.metaflow.fr/tensorflow-how-to-freeze-a-model-and-serve-it-with-a-python-api-d4f3596b3adc
-def freeze_graph(checkpoint_file, frozen_model_name, input_names, output_names):
-    # We precise the file fullname of our frozen graph
-    absolute_model_folder = "/".join(checkpoint_file.split('/')[:-1])
-    output_graph = absolute_model_folder + "/{}.pb".format(frozen_model_name)
+def freeze_graph(layer, unit, input_names, output_names, accuracy=None):
+
+    frozen_model_path = "data/{}layer{}unit.pb".format(layer, unit)
+    checkpoint_file = "data/{}layer{}unit.ckpt".format(layer, unit)
     if not saver_lib.checkpoint_exists(checkpoint_file):
         print("Checkpoint file '" + checkpoint_file + "' doesn't exist!")
         exit(-1)
@@ -27,17 +26,17 @@ def freeze_graph(checkpoint_file, frozen_model_name, input_names, output_names):
     with tf.Session() as sess:
         saver.restore(sess, checkpoint_file)
         print("model loaded")
-        # # export network weights and biases to text files
-        # weights = ["w_in", "b_in", "w_out", "b_out",
-        #            "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
-        #            "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/biases",
-        #            "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/weights",
-        #            "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/biases"]
-        # for name in weights:
-        #     v = sess.run("{}:0".format(name))
-        #     var_file_name = "data/{}.csv".format(name.replace("/", "_"))
-        #     print("save {} to file: {}".format(name, var_file_name))
-        #     np.savetxt(var_file_name, v, delimiter=",")
+        # export network weights and biases to text files
+        if not __debug__:
+            output_nodes = "output,w_in,b_in,w_out,b_out"
+            rnn_nodes = [",rnn/multi_rnn_cell/cell_{}/basic_lstm_cell/weights," \
+                         "rnn/multi_rnn_cell/cell_{}/basic_lstm_cell/biases".format(i, i) for i in range(args.layer)]
+            weights = output_nodes + "".join(rnn_nodes)
+            for name in weights.split(","):
+                v = sess.run("{}:0".format(name))
+                var_file_name = "data/{}.csv".format(name.replace("/", "_"))
+                print("save {} to file: {}".format(name, var_file_name))
+                np.savetxt(var_file_name, v, delimiter=",")
 
         # We use a built-in TF helper to export variables to constants
         output_graph_def = graph_util.convert_variables_to_constants(
@@ -51,30 +50,28 @@ def freeze_graph(checkpoint_file, frozen_model_name, input_names, output_names):
                                          output_names.split(","), dtypes.float32.as_datatype_enum)
 
         # Finally we serialize and dump the output graph to the filesystem
-        with tf.gfile.GFile(output_graph, "wb") as f:
+        with tf.gfile.GFile(frozen_model_path, "wb") as f:
             f.write(output_graph_def.SerializeToString())
+            print("frozen graph binary saved to: {}".format(frozen_model_path))
 
-        with tf.gfile.FastGFile("{}.txt".format(output_graph), "wb") as f:
+        frozen_model_text_path = "data/{}layer{}unit{}.pb.txt".format(layer, unit, accuracy)
+        with tf.gfile.FastGFile(frozen_model_text_path, "wb") as f:
             f.write(str(output_graph_def))
+            print("frozen graph text saved to: {}".format(frozen_model_text_path))
 
         print("%d ops in the final graph." % len(output_graph_def.node))
 
-
-def do_freeze(checkpoint_file, frozen_model_name, input_names, output_node_names):
-    freeze_graph(checkpoint_file, frozen_model_name, input_names, output_node_names)
-    print("frozen graph bin saved to: {}.pb".format(frozen_model_name))
-    print("frozen graph text saved to: {}.pb.txt".format(frozen_model_name))
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--checkpoint_file", type=str, default="data/lstm_har.ckpt",
-                        help="TensorFlow variables checkpoint file to load.")
-    parser.add_argument("--frozen_model_name", type=str, default="lstm_model_mobile",
-                        help="frozen model name")
+    parser.add_argument("--layer", type=int, default=2,
+                        help="lay size of the LSTM model")
+    parser.add_argument("--unit", type=int, default=32,
+                        help="hidden unit of the LSTM model")
     parser.add_argument("--input_names", type=str, default="input",
-                        help="Input node names, comma separated.")
+                        help="Input node names, comma separated")
     parser.add_argument("--output_names", type=str, default="output",
-                        help="The name of the output nodes, comma separated.")
+                        help="The name of the output nodes, comma separated")
+    parser.add_argument("--accuracy", type=str, default=None,
+                        help="accuracy of the LSTM model")
     args = parser.parse_args()
-    do_freeze(args.checkpoint_file, args.frozen_model_name, args.input_names, args.output_names)
+    freeze_graph(args.layer, args.unit, args.input_names, args.output_names, args.accuracy)

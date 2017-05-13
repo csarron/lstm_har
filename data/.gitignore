@@ -5,3 +5,4 @@ __MACOSX*
 *.log
 checkpoint
 *.csv
+*.pb*

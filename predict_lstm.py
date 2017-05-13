@@ -1,13 +1,21 @@
 #!/usr/bin/python
 from __future__ import print_function
+import argparse
 import tensorflow as tf
 import numpy as np
 import os
 import time
-import util
+import data_util
 
 if __name__ == "__main__":
-    frozen_model = "data/lstm_model_mobile.pb"
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--layer", type=int, default=2,
+                        help="lay size of the LSTM model")
+    parser.add_argument("--unit", type=int, default=32,
+                        help="hidden unit of the LSTM model")
+    args = parser.parse_args()
+    frozen_model = "data/{}layer{}unit.pb".format(args.layer, args.unit)
+
     if os.path.isfile(frozen_model):
         print("using frozen model: {}".format(frozen_model))
     else:
@@ -18,7 +26,7 @@ if __name__ == "__main__":
     # -----------------------------
     # step1: load and prepare data
     # -----------------------------
-    x_test, y_test = util.get_data("test")
+    x_test, y_test = data_util.get_data("test")
 
     # np.random.seed(0)
     # sample_index = np.random.randint(len(y_test), size=sample_size)
@@ -31,7 +39,12 @@ if __name__ == "__main__":
     print("loading data takes {:6.4f} ms".format((init_end_time - init_time) * 1000))
     print("predicting cases:")
 
-    graph = util.load_graph(frozen_model)
+    with tf.gfile.GFile(frozen_model, "rb") as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+    with tf.Graph().as_default() as graph:
+        tf.import_graph_def(graph_def, input_map=None, return_elements=None,
+                            name="", op_dict=None, producer_op_list=None)
     if not __debug__:
         print('\n'.join(map(str, [op.name for op in graph.get_operations()])))
     session = tf.Session(graph=graph)

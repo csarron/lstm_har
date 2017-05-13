@@ -1,7 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import time
-import util
+import data_util
 
 weight_names = ["w_in", "b_in", "w_out", "b_out",
                 "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/weights",
@@ -49,13 +49,13 @@ def calc_cell_one_step(in_, c_, h_, l):
 def predict(x_):
     inputs = np.maximum(np.dot(x_, weights["w_in"]) + weights["b_in"], 0)
     # np.savetxt("data/inputs_np.log", inputs, '%.8e')
-    hidden_units = len(weights["b_in"])
+    hidden_unit = len(weights["b_in"])
 
     inputs = np.split(inputs, time_steps, 0)
     outputs = []
     for layer in xrange(layer_size):
-        c = np.zeros((1, hidden_units))
-        h = np.zeros((1, hidden_units))
+        c = np.zeros((1, hidden_unit))
+        h = np.zeros((1, hidden_unit))
         for step in xrange(time_steps):
             input_ = inputs[step]
             c, h = calc_cell_one_step(input_, c, h, layer)
@@ -74,7 +74,7 @@ def predict(x_):
 if __name__ == "__main__":
     start_time = time.time()
 
-    x_test, y_test = util.get_data("test")
+    x_test, y_test = data_util.get_data("test")
     time_steps = len(x_test[0])
     input_dim = len(x_test[0][0])
 
