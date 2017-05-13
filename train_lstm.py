@@ -131,7 +131,8 @@ if __name__ == "__main__":
     sess = tf.Session(config=tf.ConfigProto(log_device_placement=False))
     init_var = tf.global_variables_initializer()
     sess.run(init_var)
-    model_checkpoint = "data/{}layer{}unit.ckpt".format(args.layer, args.unit)
+    model_name = "{}layer{}unit".format(args.layer, args.unit)
+    model_checkpoint = "data/{}.ckpt".format(model_name)
     saver = tf.train.Saver()
     best_accuracy = 0.0
     best_iter = 0
@@ -167,9 +168,8 @@ if __name__ == "__main__":
     freeze_model.freeze_graph(args.layer, args.unit, "input", "output", "{:2.0f}".format(best_accuracy * 100))
     print("Model frozen")
     print("Begin zipping model files...")
-    data_util.zip_files("data/ckpt.zip", "data/*.ckpt.*")
-    data_util.zip_files("data/model.zip", "data/*.pb")
-    data_util.zip_files("data/model_text.zip", "data/*.pb.txt")
+    data_util.zip_files("data/{}ckpt.zip".format(model_name), "data/{}.ckpt.*".format(model_name))
+    data_util.zip_files("data/{}model.zip".format(model_name), "data/{}.pb*".format(model_name))
     print("Model files zipped...")
 
     print("All finished, takes {:6.4f}s in total".format(time.time() - init_time))
