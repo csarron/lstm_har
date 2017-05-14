@@ -67,8 +67,7 @@ def freeze_data(data_size=500, data_filename="phone_data"):
     label_name = "y"
     np.random.seed(0)
     x, y = data_util.get_data("test")
-    samples = np.arange(data_size)
-    np.random.shuffle(samples)
+    samples = np.random.randint(0, len(y), data_size)
     print("use {} data samples".format(data_size))
     if not __debug__:
         print("use samples: {}".format(samples))
@@ -85,7 +84,7 @@ def freeze_data(data_size=500, data_filename="phone_data"):
     frozen_data_text_path = "data/data.pb.txt"
 
     input_const = tf.constant(x, dtype=tf.float32, shape=x.shape, name=input_name)
-    label_const = tf.constant(y, dtype=tf.uint8, shape=y.shape, name=label_name)
+    label_const = tf.constant(y, dtype=tf.int32, shape=y.shape, name=label_name)
 
     graph = tf.get_default_graph()
     with tf.Session() as sess:
@@ -132,5 +131,5 @@ if __name__ == '__main__':
     parser.add_argument("--accuracy", type=str, default="",
                         help="accuracy of the LSTM model")
     args = parser.parse_args()
-    freeze_graph(args.layer, args.unit, args.input_names, args.output_names, args.accuracy)
+    # freeze_graph(args.layer, args.unit, args.input_names, args.output_names, args.accuracy)
     freeze_data()
