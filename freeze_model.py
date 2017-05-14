@@ -8,7 +8,7 @@ from tensorflow.python.training import saver as saver_lib
 
 
 # modified from https://blog.metaflow.fr/tensorflow-how-to-freeze-a-model-and-serve-it-with-a-python-api-d4f3596b3adc
-def freeze_graph(layer, unit, input_names, output_names, accuracy=None):
+def freeze_graph(layer, unit, input_names, output_names, accuracy):
 
     frozen_model_path = "data/{}layer{}unit.pb".format(layer, unit)
     checkpoint_file = "data/{}layer{}unit.ckpt".format(layer, unit)
@@ -28,7 +28,7 @@ def freeze_graph(layer, unit, input_names, output_names, accuracy=None):
         print("model loaded")
         # export network weights and biases to text files
         if not __debug__:
-            output_nodes = "output,w_in,b_in,w_out,b_out"
+            output_nodes = "w_in,b_in,w_out,b_out"
             rnn_nodes = [",rnn/multi_rnn_cell/cell_{}/basic_lstm_cell/weights," \
                          "rnn/multi_rnn_cell/cell_{}/basic_lstm_cell/biases".format(i, i) for i in range(args.layer)]
             weights = output_nodes + "".join(rnn_nodes)
@@ -65,13 +65,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--layer", type=int, default=2,
                         help="lay size of the LSTM model")
-    parser.add_argument("--unit", type=int, default=32,
+    parser.add_argument("--unit", type=int, default=64,
                         help="hidden unit of the LSTM model")
     parser.add_argument("--input_names", type=str, default="input",
                         help="Input node names, comma separated")
     parser.add_argument("--output_names", type=str, default="output",
                         help="The name of the output nodes, comma separated")
-    parser.add_argument("--accuracy", type=str, default=None,
+    parser.add_argument("--accuracy", type=str, default="",
                         help="accuracy of the LSTM model")
     args = parser.parse_args()
     freeze_graph(args.layer, args.unit, args.input_names, args.output_names, args.accuracy)
