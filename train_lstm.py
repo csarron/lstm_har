@@ -167,10 +167,14 @@ if __name__ == "__main__":
     print("Begin freezing model...")
     freeze_model.freeze_graph(args.layer, args.unit, "input", "output", "{:2.0f}".format(best_accuracy * 100))
     print("Model frozen")
-    print("Begin zipping model files...")
 
+    print("Begin zipping model files...")
     data_util.zip_files("model/{}.ckpt.zip".format(model_name), "data/{}.ckpt.*".format(model_name))
     data_util.zip_files("model/{}.model.zip".format(model_name), "data/{}*.pb*".format(model_name))
-    print("Model files zipped...")
+    print("Model files zipped")
+
+    print("Begin freezing data files...")
+    freeze_model.freeze_data()
+    print("Data files frozen")
 
     print("All finished, takes {:6.4f}s in total".format(time.time() - init_time))

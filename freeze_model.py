@@ -5,11 +5,11 @@ from tensorflow.python.framework import dtypes
 from tensorflow.python.framework import graph_util
 from tensorflow.python.tools.optimize_for_inference_lib import optimize_for_inference as opt_inference
 from tensorflow.python.training import saver as saver_lib
+import data_util
 
 
 # modified from https://blog.metaflow.fr/tensorflow-how-to-freeze-a-model-and-serve-it-with-a-python-api-d4f3596b3adc
 def freeze_graph(layer, unit, input_names, output_names, accuracy):
-
     frozen_model_path = "data/{}layer{}unit.pb".format(layer, unit)
     checkpoint_file = "data/{}layer{}unit.ckpt".format(layer, unit)
     if not saver_lib.checkpoint_exists(checkpoint_file):
@@ -61,6 +61,64 @@ def freeze_graph(layer, unit, input_names, output_names, accuracy):
 
         print("%d ops in the final graph." % len(output_graph_def.node))
 
+
+def freeze_data(data_size=500, data_filename="phone_data"):
+    input_name = "x"
+    label_name = "y"
+    np.random.seed(0)
+    x, y = data_util.get_data("test")
+    samples = np.arange(data_size)
+    np.random.shuffle(samples)
+    print("use {} data samples".format(data_size))
+    if not __debug__:
+        print("use samples: {}".format(samples))
+    x = x[samples]
+    y = np.argmax(y[samples], axis=1) + 1
+    print("{} shape: {}".format(input_name, x.shape))
+    print("{} shape: {}".format(label_name, y.shape))
+    print("save {} to text file at: {}".format(input_name, "data/data.{}.txt".format(input_name)))
+    print("save {} to text file at: {}".format(label_name, "data/data.{}.txt".format(label_name)))
+    np.savetxt("data/data.{}.txt".format(input_name), np.reshape(x, [data_size, np.prod(x.shape)/data_size]), '%.7e')
+    np.savetxt("data/data.{}.txt".format(label_name), y, '%d')
+
+    frozen_data_path = "data/data.pb"
+    frozen_data_text_path = "data/data.pb.txt"
+
+    input_const = tf.constant(x, dtype=tf.float32, shape=x.shape, name=input_name)
+    label_const = tf.constant(y, dtype=tf.uint8, shape=y.shape, name=label_name)
+
+    graph = tf.get_default_graph()
+    with tf.Session() as sess:
+        sess.run(input_const)
+        sess.run(label_const)
+        with tf.gfile.GFile(frozen_data_path, "wb") as f:
+            f.write(graph.as_graph_def().SerializeToString())
+            print("frozen {} and {} to binary file at: {}".format(input_name, label_name, frozen_data_path))
+        with tf.gfile.FastGFile(frozen_data_text_path, "wb") as f:
+            f.write(str(graph.as_graph_def()))
+            print("frozen {} and {} to text file at: {}".format(input_name, label_name, frozen_data_text_path))
+
+    with tf.gfile.GFile(frozen_data_path, "rb") as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+    with tf.Graph().as_default() as graph:
+        tf.import_graph_def(graph_def, input_map=None, return_elements=None,
+                            name="", op_dict=None, producer_op_list=None)
+    session = tf.Session(graph=graph)
+    input_op = graph.get_operation_by_name(input_name).outputs[0]
+    label_op = graph.get_operation_by_name(label_name).outputs[0]
+
+    input_op_result = session.run(input_op)
+    label_op_result = session.run(label_op)
+
+    assert input_op_result.shape == x.shape
+    assert label_op_result.shape == y.shape
+
+    assert np.allclose(x, input_op_result)
+    assert np.allclose(y, label_op_result)
+    data_util.zip_files("model/{}.zip".format(data_filename), "data/data.*")
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--layer", type=int, default=2,
@@ -75,3 +133,4 @@ if __name__ == '__main__':
                         help="accuracy of the LSTM model")
     args = parser.parse_args()
     freeze_graph(args.layer, args.unit, args.input_names, args.output_names, args.accuracy)
+    freeze_data()

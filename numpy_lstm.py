@@ -53,10 +53,10 @@ def predict(x_):
 
     inputs = np.split(inputs, time_steps, 0)
     outputs = []
-    for layer in xrange(layer_size):
+    for layer in range(layer_size):
         c = np.zeros((1, hidden_unit))
         h = np.zeros((1, hidden_unit))
-        for step in xrange(time_steps):
+        for step in range(time_steps):
             input_ = inputs[step]
             c, h = calc_cell_one_step(input_, c, h, layer)
             inputs[step] = h
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     sample_size = 100
 
     p_start = time.time()
-    labels_predicted = [predict(x_test[i]) for i in xrange(sample_size)]
+    labels_predicted = [predict(x_test[i]) for i in range(sample_size)]
     p_end = time.time()
     print("prediction time: {}s".format(p_end - p_start))
 
