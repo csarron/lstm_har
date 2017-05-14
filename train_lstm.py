@@ -170,7 +170,7 @@ if __name__ == "__main__":
     print("Begin zipping model files...")
 
     data_util.zip_files("model/{}.ckpt.zip".format(model_name), "data/{}.ckpt.*".format(model_name))
-    data_util.zip_files("model/{}.model.zip".format(model_name), "data/{}.pb*".format(model_name))
+    data_util.zip_files("model/{}.model.zip".format(model_name), "data/{}*.pb*".format(model_name))
     print("Model files zipped...")
 
     print("All finished, takes {:6.4f}s in total".format(time.time() - init_time))
