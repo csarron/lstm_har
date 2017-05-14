@@ -119,4 +119,6 @@ def zip_files(zip_file, files):
             zip_ref.write(file_item)
 
 # if __name__ == '__main__':
-#     zip_files("model/{}.ckpt.zip".format("2layer32unit"), "model/{}.ckpt.*".format("2layer32unit"))
+#     for model_name in ["2layer32unit", "2layer64unit", "2layer128unit", "2layer256unit", "3layer64unit"]:
+#         zip_files("model/{}.ckpt.zip".format(model_name), "data/{}.ckpt.*".format(model_name))
+#         zip_files("model/{}.model.zip".format(model_name), "data/{}.pb*".format(model_name))
